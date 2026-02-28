@@ -1,0 +1,16 @@
+django
+djangorestframework
+psycopg2-binary
+langchain
+langgraph
+langchain_groq
+sentence-transformers
+huggingface_hub
+pymupdf
+python-dotenv
+celery
+redis
+django-cors-headers
+faiss-cpu
+langchain_community
+langchain_text_splitters
