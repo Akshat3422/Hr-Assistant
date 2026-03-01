@@ -1,6 +1,16 @@
 import os
+from dotenv import load_dotenv
 from langchain_community.vectorstores import FAISS
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_groq.chat_models import ChatGroq
 
+load_dotenv()
+
+groq_api_key=os.getenv('GROQ_API_KEY')
+
+
+
+model=ChatGroq(api_key=groq_api_key,model="openai/gpt-oss-120b") # type: ignore
 def create_and_save_index(docs, embedding, candidate_id):
     vector_store = FAISS.from_documents(docs, embedding)
 
@@ -13,3 +23,8 @@ def create_and_save_index(docs, embedding, candidate_id):
 
 
 
+
+def load_llm(llm:ChatGroq,prompt:ChatPromptTemplate,OutputParser):
+    model_used=llm.with_structured_output(OutputParser)
+    chain=prompt|model_used
+    return chain
