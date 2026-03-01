@@ -1,5 +1,8 @@
 import os
+from unittest import loader
 from dotenv import load_dotenv
+from faiss import loader
+from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq.chat_models import ChatGroq
@@ -21,7 +24,11 @@ def create_and_save_index(docs, embedding, candidate_id):
 
     return vector_store
 
-
+def load_documents(path:str):
+    loader = PyMuPDFLoader(path)
+    documents = loader.load()
+    context="\n\n".join([doc.page_content for doc in documents])
+    return context
 
 
 def load_llm(llm:ChatGroq,prompt:ChatPromptTemplate,OutputParser):
