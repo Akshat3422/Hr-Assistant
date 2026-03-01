@@ -35,3 +35,23 @@ def load_llm(llm:ChatGroq,prompt:ChatPromptTemplate,OutputParser):
     model_used=llm.with_structured_output(OutputParser)
     chain=prompt|model_used
     return chain
+
+def calculate_skill_score(
+    jd_skills_required,
+    jd_skills_preffered,
+    resume_skills,
+    required_weight=0.8,
+    preferred_weight=0.2
+):
+    required_matches = set(jd_skills_required).intersection(set(resume_skills))
+    preferred_matches = set(jd_skills_preffered).intersection(set(resume_skills))
+
+    required_score = len(required_matches) / max(len(jd_skills_required), 1)
+    preferred_score = len(preferred_matches) / max(len(jd_skills_preffered), 1)
+
+    skills_score = (
+        required_score * required_weight +
+        preferred_score * preferred_weight
+    )
+
+    return round(skills_score, 3)*100
