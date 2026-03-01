@@ -10,3 +10,6 @@ def create_and_save_index(docs, embedding, candidate_id):
     vector_store.save_local(path)
 
     return vector_store
+
+
+
