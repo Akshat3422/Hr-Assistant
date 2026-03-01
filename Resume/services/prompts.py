@@ -22,3 +22,22 @@ system_job_message = SystemMessagePromptTemplate.from_template(job_template)
 human_job_message = HumanMessagePromptTemplate.from_template("{job_description}")
 
 final_job_prompt = ChatPromptTemplate.from_messages([system_job_message, human_job_message])
+
+
+
+
+skill_template="""You are an expert technical recruiter.
+
+Normalize the following skills into their base canonical form. and  remove the  similar skills.
+
+Rules:
+- Remove words like: basic, learning, beginner, advanced.
+- Remove brackets content.
+- Convert abbreviations to standard names (DRF → Django REST Framework).
+- Normalize each skill strictly into ONE base canonical skill.
+Do not split one skill into multiple skills.
+Do not infer additional skills.
+Return only cleaned versions of the given skills."""
+system_skill_message = SystemMessagePromptTemplate.from_template(skill_template)
+human_skill_message = HumanMessagePromptTemplate.from_template("{skills}")
+final_skill_prompt = ChatPromptTemplate.from_messages([system_skill_message, human_skill_message])
