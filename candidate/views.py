@@ -1,4 +1,5 @@
 from datetime import timedelta
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db import transaction
 from rest_framework import generics, status
@@ -6,9 +7,12 @@ from rest_framework.response import Response
 from django.contrib.auth.models import User
 from .utils import send_otp_email
 from django.contrib.auth import authenticate
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, IsAuthenticated
+from rest_framework.decorators import api_view
+from django.contrib.auth import logout
 from .models import Candidate
 import re
-from .serializers import  OTPVerificationSerializer, RegisterSerializer, ResendOTPSerializer,LoginSerializer
+from .serializers import  CandidateUpdate, OTPVerificationSerializer, RegisterSerializer, ResendOTPSerializer,CandidatesList
 
 
 class RegisterCandidate(generics.CreateAPIView):
@@ -32,6 +36,12 @@ class RegisterCandidate(generics.CreateAPIView):
         if  not re.match(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$', password):
             return Response(
                 {"error": "Password must be at least 8 characters long and include at least one letter, one number, and one special character."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not re.match(r'^[6-9]\d{9}$',phone):
+            return Response(
+                {'error':'Phone number not valid'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -105,44 +115,66 @@ class ResendOTP(generics.GenericAPIView):
         
 
 
+# Generic view always takes queryset and serializer class as attributes.
+class ListCandidates(generics.ListAPIView):
+    queryset = Candidate.objects.all()
+    serializer_class=CandidatesList
+    permission_classes = [IsAdminUser]
 
 
-class LoginCandidate(generics.GenericAPIView):
-    serializer_class = LoginSerializer
+# Baki Crud request 
 
-    def post(self, request):
-        email = request.data.get("email")
-        password = request.data.get("password")
+class AdminCandidateDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Candidate.objects.all()
+    serializer_class = CandidatesList
+    permission_classes = [IsAdminUser]
 
-        if not email or not password:
+
+class CandidateProfile(generics.RetrieveUpdateAPIView):
+    serializer_class = CandidateUpdate
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return get_object_or_404(Candidate, user=self.request.user)
+
+    def patch(self, request, *args, **kwargs):
+        instance = self.get_object()
+        old_email = instance.user.email
+
+        serializer = CandidateUpdate(
+            instance,
+            data=request.data,
+            partial=True
+        )
+
+        serializer.is_valid(raise_exception=True)
+        updated_instance = serializer.save()
+
+        new_email = updated_instance.user.email #type:ignore
+
+        if "email" in request.data and old_email != new_email:
+            user = updated_instance.user  #type: ignore
+            user.is_email_verified = False
+            user.save()
+            send_otp_email(user)
+
             return Response(
-                {"message": "Email and password required"},
-                status=status.HTTP_400_BAD_REQUEST
+                {
+                    "data": serializer.data,
+                    "message": "Email updated. Please verify your new email via OTP."
+                },
+                status=status.HTTP_200_OK
             )
 
-        user = authenticate(username=email, password=password)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-        if not user:
-            return Response(
-                {"message": "Invalid credentials"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
-        try:
-            candidate = Candidate.objects.get(user__email=email)
-        except Candidate.DoesNotExist:
-            return Response(
-                {"message": "Candidate profile not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        if not candidate.is_verified:
-            return Response(
-                {"message": "Candidate not verified"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
+@api_view(["POST"])
+def Logout(request):
+    def Logout(request):
+        logout(request)
         return Response(
-            {"message": "Login successful"},
+            {"message": "Logged out successfully"},
             status=status.HTTP_200_OK
         )
+

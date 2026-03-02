@@ -17,7 +17,33 @@ class ResendOTPSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 
+class CandidatesList(serializers.ModelSerializer):
+    email = serializers.EmailField(source="user.email", read_only=True)
+    id=serializers.StringRelatedField(source="user.id",read_only=True)
+    class Meta:
+        model=Candidate
+        fields=["id","full_name","email","phone"]
 
-class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField()
+
+
+class CandidateUpdate(serializers.ModelSerializer):
+    email = serializers.EmailField(source="user.email", required=False)
+
+    class Meta:
+        model = Candidate
+        fields = ["full_name", "phone", "email"]
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop("user", None)
+
+        # Candidate fields update
+        instance = super().update(instance, validated_data)
+
+        # User email update
+        if user_data and "email" in user_data:
+            instance.user.email = user_data["email"]
+            instance.user.save()
+
+        return instance
+
+    
