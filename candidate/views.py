@@ -156,7 +156,8 @@ class CandidateProfile(generics.RetrieveUpdateAPIView):
             user = updated_instance.user  #type: ignore
             user.is_email_verified = False
             user.save()
-            send_otp_email(user)
+            candidate=Candidate.objects.get(user=user)
+            send_otp_email(candidate)
 
             return Response(
                 {

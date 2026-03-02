@@ -34,13 +34,15 @@ class CandidateUpdate(serializers.ModelSerializer):
         fields = ["full_name", "phone", "email"]
 
     def update(self, instance, validated_data):
-        user_data = validated_data.pop("user", None)
+        user_data = validated_data.pop("user", {})
 
-        # Candidate fields update
-        instance = super().update(instance, validated_data)
+        # update candidate fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
 
-        # User email update
-        if user_data and "email" in user_data:
+        # update user email
+        if "email" in user_data:
             instance.user.email = user_data["email"]
             instance.user.save()
 
