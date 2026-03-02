@@ -4,7 +4,7 @@ from .models import Candidate
 class CandidateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Candidate
-        fields = ['id', 'full_name', 'email', 'phone', 'created_at']
+        fields = ['id', 'full_name','password', 'email', 'phone', 'created_at']
 
 
 class OTPVerificationSerializer(serializers.Serializer):
