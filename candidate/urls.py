@@ -1,7 +1,10 @@
 from django.urls import path
-from .views import CandidateListCreateView, CandidateDetailView
+from .views import RegisterCandidate, ResendOTP, VerifyOTP 
+
+
 
 urlpatterns = [
-    path("", CandidateListCreateView.as_view(), name="candidate_list_create"),
-    path("<str:pk>/", CandidateDetailView.as_view(), name="candidate_detail"),
+    path("register/", RegisterCandidate.as_view(), name="register_candidate"),
+    path("verify-otp/", VerifyOTP.as_view(), name="verify_otp"),
+    path("resend-otp/", ResendOTP.as_view(), name="resend_otp"),
 ]
