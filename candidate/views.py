@@ -48,6 +48,10 @@ class RegisterCandidate(generics.CreateAPIView):
             email=email,
             password=password
         )
+        existing_candidate = Candidate.objects.filter(phone=phone, is_verified=False).first()
+
+        if existing_candidate:
+            existing_candidate.user.delete()
 
         # Create candidate profile
         candidate = Candidate.objects.create(
