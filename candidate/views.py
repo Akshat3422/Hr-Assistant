@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from .utils import send_otp_email
 from django.contrib.auth import authenticate
 from .models import Candidate
+import re
 from .serializers import  OTPVerificationSerializer, RegisterSerializer, ResendOTPSerializer,LoginSerializer
 
 
@@ -25,6 +26,12 @@ class RegisterCandidate(generics.CreateAPIView):
         if not email or not password:
             return Response(
                 {"error": "Email and password required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if  not re.match(r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$', password):
+            return Response(
+                {"error": "Password must be at least 8 characters long and include at least one letter, one number, and one special character."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
