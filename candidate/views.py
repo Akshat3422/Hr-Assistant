@@ -1,23 +1,56 @@
 from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction
-from rest_framework.views import APIView
 from rest_framework import generics, status
 from rest_framework.response import Response
+from django.contrib.auth.models import User
 from .utils import send_otp_email
+from django.contrib.auth import authenticate
 from .models import Candidate
-from .serializers import CandidateSerializer, OTPVerificationSerializer, ResendOTPSerializer
+from .serializers import  OTPVerificationSerializer, RegisterSerializer, ResendOTPSerializer,LoginSerializer
+
 
 class RegisterCandidate(generics.CreateAPIView):
-    serializer_class = CandidateSerializer
+    serializer_class = RegisterSerializer
 
     @transaction.atomic
-    def perform_create(self, serializer):
-        candidate = serializer.save(is_verified=False)
-        send_otp_email(candidate)
-
     def create(self, request, *args, **kwargs):
-        response = super().create(request, *args, **kwargs)
+        data = request.data
+
+        email = data.get("email")
+        password = data.get("password")
+        full_name = data.get("full_name")
+        phone = data.get("phone")
+
+        if not email or not password:
+            return Response(
+                {"error": "Email and password required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check existing user
+        if User.objects.filter(username=email).exists():
+            return Response(
+                {"error": "Email already registered"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Create user (password automatically hashed)
+        user = User.objects.create_user(
+            username=email,
+            email=email,
+            password=password
+        )
+
+        # Create candidate profile
+        candidate = Candidate.objects.create(
+            user=user,
+            full_name=full_name,
+            phone=phone,
+            is_verified=False
+        )
+
+        send_otp_email(candidate)
         return Response(
             {"message": "OTP sent to email"},
             status=status.HTTP_201_CREATED
@@ -30,8 +63,8 @@ class VerifyOTP(generics.GenericAPIView):
     def post(self,request):
         email = request.data.get("email")
         otp = request.data.get("otp")
-        try:
-            candidate = Candidate.objects.get(email=email)
+        try:            
+            candidate = Candidate.objects.get(user__email=email)
             if not candidate.otp or not candidate.otp_created_at:
                 return Response({"message": "OTP not generated"}, status=400)
             
@@ -53,8 +86,52 @@ class ResendOTP(generics.GenericAPIView):
     def post(self,request):
         email = request.data.get("email")
         try:
-            candidate = Candidate.objects.get(email=email)
+            candidate = Candidate.objects.get(user__email=email)
             send_otp_email(candidate)
             return Response({"message": "OTP resent to email"})
         except Candidate.DoesNotExist:
             return Response({"message": "Candidate not found"}, status=404)
+        
+
+
+
+
+class LoginCandidate(generics.GenericAPIView):
+    serializer_class = LoginSerializer
+
+    def post(self, request):
+        email = request.data.get("email")
+        password = request.data.get("password")
+
+        if not email or not password:
+            return Response(
+                {"message": "Email and password required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user = authenticate(username=email, password=password)
+
+        if not user:
+            return Response(
+                {"message": "Invalid credentials"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            candidate = Candidate.objects.get(user__email=email)
+        except Candidate.DoesNotExist:
+            return Response(
+                {"message": "Candidate profile not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if not candidate.is_verified:
+            return Response(
+                {"message": "Candidate not verified"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            {"message": "Login successful"},
+            status=status.HTTP_200_OK
+        )

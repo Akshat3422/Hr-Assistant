@@ -1,10 +1,11 @@
 from rest_framework import serializers
 from .models import Candidate
 
-class CandidateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Candidate
-        fields = ['id', 'full_name','password', 'email', 'phone', 'created_at']
+class RegisterSerializer(serializers.Serializer):
+    full_name = serializers.CharField(max_length=255)
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+    phone = serializers.CharField(max_length=10)
 
 
 class OTPVerificationSerializer(serializers.Serializer):
@@ -14,3 +15,9 @@ class OTPVerificationSerializer(serializers.Serializer):
 
 class ResendOTPSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()

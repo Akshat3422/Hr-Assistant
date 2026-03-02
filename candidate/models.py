@@ -1,5 +1,7 @@
 from django.db import models
 from django.core.validators import RegexValidator
+from django.contrib.auth.models import User
+
 
 phone_validator = RegexValidator(
     regex=r'^[6-9]\d{9}$',
@@ -13,10 +15,13 @@ password_validator = RegexValidator(
 
 # Create your models here.
 class Candidate(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='candidate_profile'
+    )
     full_name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=128,validators=[password_validator])
-    phone = models.CharField(max_length=10,validators=[phone_validator], unique=True)
+    phone = models.CharField(max_length=10, validators=[phone_validator], unique=True)
     otp = models.CharField(max_length=6, null=True, blank=True)
     otp_created_at = models.DateTimeField(null=True, blank=True)
     is_verified = models.BooleanField(default=False)

@@ -10,14 +10,14 @@ def generate_otp():
 
 
 
-def send_otp_email(user):
+def send_otp_email(candidate):
     """Sends an OTP email to the user."""
     subject = "Your OTP for HR Assistant"
     otp=generate_otp()
-    user.otp=otp
-    user.otp_created_at=timezone.now()
-    user.save()
-    message = f"Hello {user.full_name},\n\nYour OTP is: {user.otp}\n\nThis OTP is valid for 10 minutes."
+    candidate.otp=otp
+    candidate.otp_created_at=timezone.now()
+    candidate.save()
+    message = f"Hello {candidate.full_name},\n\nYour OTP is: {candidate.otp}\n\nThis OTP is valid for 10 minutes."
     from_email = settings.EMAIL_HOST_USER
-    recipient_list = [user.email]
+    recipient_list = [candidate.user.email]
     send_mail(subject, message, from_email, recipient_list,fail_silently=False)
