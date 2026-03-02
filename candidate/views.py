@@ -26,6 +26,7 @@ class RegisterCandidate(generics.CreateAPIView):
         password = data.get("password")
         full_name = data.get("full_name")
         phone = data.get("phone")
+        username=data.get("username")
 
         if not email or not password:
             return Response(
@@ -44,17 +45,23 @@ class RegisterCandidate(generics.CreateAPIView):
                 {'error':'Phone number not valid'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+        if not re.match(r'^[a-zA-Z0-9_]+$',username):
+            return Response(
+                {'error':'Username must be alphanumeric or contain underscores.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         # Check existing user
-        if User.objects.filter(username=email).exists():
+        if User.objects.filter(username=username).exists():
             return Response(
-                {"error": "Email already registered"},
+                {"error": "Username already registered"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         # Create user (password automatically hashed)
         user = User.objects.create_user(
-            username=email,
+            username=username,
             email=email,
             password=password
         )
@@ -82,10 +89,10 @@ class VerifyOTP(generics.GenericAPIView):
     serializer_class = OTPVerificationSerializer
 
     def post(self,request):
-        email = request.data.get("email")
+        username = request.data.get("username")
         otp = request.data.get("otp")
         try:            
-            candidate = Candidate.objects.get(user__email=email)
+            candidate = Candidate.objects.get(user__username=username)
             if not candidate.otp or not candidate.otp_created_at:
                 return Response({"message": "OTP not generated"}, status=400)
             
@@ -105,9 +112,9 @@ class ResendOTP(generics.GenericAPIView):
     serializer_class = ResendOTPSerializer
 
     def post(self,request):
-        email = request.data.get("email")
+        username = request.data.get("username")
         try:
-            candidate = Candidate.objects.get(user__email=email)
+            candidate = Candidate.objects.get(user__username=username)
             send_otp_email(candidate)
             return Response({"message": "OTP resent to email"})
         except Candidate.DoesNotExist:
@@ -141,6 +148,7 @@ class CandidateProfile(generics.RetrieveUpdateAPIView):
         instance = self.get_object()
         old_email = instance.user.email
 
+
         serializer = CandidateUpdate(
             instance,
             data=request.data,
@@ -154,9 +162,11 @@ class CandidateProfile(generics.RetrieveUpdateAPIView):
 
         if "email" in request.data and old_email != new_email:
             user = updated_instance.user  #type: ignore
-            user.is_email_verified = False
+            updated_instance.user.is_email_verified = False #type: ignore
             user.save()
             candidate=Candidate.objects.get(user=user)
+            candidate.is_verified=False
+            candidate.save()
             send_otp_email(candidate)
 
             return Response(

@@ -4,25 +4,27 @@ from .models import Candidate
 class RegisterSerializer(serializers.Serializer):
     full_name = serializers.CharField(max_length=255)
     email = serializers.EmailField()
+    username = serializers.CharField(max_length=255)
     password = serializers.CharField(write_only=True)
     phone = serializers.CharField(max_length=10)
 
 
 class OTPVerificationSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    username = serializers.CharField(max_length=255)
     otp = serializers.CharField(max_length=6)
 
 
 class ResendOTPSerializer(serializers.Serializer):
-    email = serializers.EmailField()
+    username = serializers.CharField(max_length=255)
 
 
 class CandidatesList(serializers.ModelSerializer):
     email = serializers.EmailField(source="user.email", read_only=True)
+    username=serializers.CharField(source="user.username",read_only=True)
     id=serializers.StringRelatedField(source="user.id",read_only=True)
     class Meta:
         model=Candidate
-        fields=["id","full_name","email","phone"]
+        fields=["id","full_name","email","phone","username"]
 
 
 
