@@ -16,13 +16,6 @@ class Resume(models.Model):
         return f"Resume of {self.candidate.full_name}"
 
 
+# celery -A HrAssistant worker --pool=solo --loglevel=info
 
 
-class JobRole(models.Model):
-    title = models.CharField(max_length=255)
-    required_skills = models.JSONField()
-    experience_required = models.FloatField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.title

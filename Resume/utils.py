@@ -1,7 +1,6 @@
 import os
-from unittest import loader
+from langchain_core.output_parsers  import PydanticOutputParser
 from dotenv import load_dotenv
-from faiss import loader
 from langchain_community.document_loaders import PyMuPDFLoader
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
@@ -32,8 +31,9 @@ def load_documents(path:str):
 
 
 def load_llm(llm:ChatGroq,prompt:ChatPromptTemplate,OutputParser):
-    model_used=llm.with_structured_output(OutputParser)
-    chain=prompt|model_used
+    
+    model=llm.with_structured_output(OutputParser)
+    chain=prompt|model
     return chain
 
 def calculate_skill_score(

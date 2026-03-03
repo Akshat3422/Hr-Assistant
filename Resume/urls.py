@@ -1,9 +1,12 @@
 from django.urls import path
 
-from candidate import views
+from .views import UploadResume,ListCandidateResume,ResumeProfile
 
+# Upload Resume and Job Rolees
+# List all resumes and job roles of all candidates
 
-# urlpatterns = [
-#     # Define your URL patterns here
-#     path('<int:pk>/upload_resume/', views.upload_resume, name='upload_resume'),
-#     path('match_score/', views.match_score, name='match_score'),]
+urlpatterns=[
+    path('upload-resume/', UploadResume.as_view(), name='upload_resume'),
+    path('',ListCandidateResume.as_view(),name="my_resumes"),
+    path('<str:pk>',ResumeProfile.as_view(),name="resume_detail")
+]

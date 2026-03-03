@@ -6,7 +6,7 @@ from typing import List,Optional
 
 class ResumeOutput(BaseModel):
     skills: Optional[List[str]]
-    total_experience_years: Optional[int]
+    total_experience_years: Optional[float]
     job_titles: Optional[List[str]]
     responsibilities: Optional[List[str]]
     previous_companies: Optional[List[str]]
