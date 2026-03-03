@@ -14,3 +14,4 @@ django-cors-headers
 faiss-cpu
 langchain_community
 langchain_text_splitters
+djangorestframework-simplejwt

@@ -1,6 +1,6 @@
 from django.db import models
 from candidate.models import Candidate
-from Resume.models import JobRole   
+from JobRole.models import JobRole   
 
 # Create your models here.
 class InterviewSession(models.Model):
