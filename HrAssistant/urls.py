@@ -24,8 +24,8 @@ urlpatterns = [
     # path('resume/', include('Resume.urls')),
     path('candidate/', include('candidate.urls')),
     path('resume/', include('Resume.urls')),
-    # path('jobrole/', include('JobRole.urls')),
-    # path('recruiter/', include('Recruiter.urls')), 
+    path('jobrole/', include('JobRole.urls')),
+    path('recruiter/', include('Recruiter.urls')), 
     # path('interview/', include('Interview.urls')),
 ]
 
