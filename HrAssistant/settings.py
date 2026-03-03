@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'Hr',
     'Resume',
     'Interview',
+    'JobRole',
+    'Recruiter',
     'rest_framework',
 
 ]
@@ -156,3 +158,12 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
+
+
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
